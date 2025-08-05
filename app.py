@@ -443,16 +443,30 @@ def main():
     # Render login form if not authenticated
     if not st.session_state['logged_in']:
         st.subheader("🔒 Please log in to continue")
+        # Collect user credentials
         username_input = st.text_input("Username")
         password_input = st.text_input("Password", type="password")
+
+        # When the user clicks the Login button, validate the credentials
         if st.button("Login"):
             if username_input == username_secret and password_input == password_secret:
+                # Update session state to reflect successful login.  Once this
+                # flag is True, the rest of the app will render on the next
+                # iteration of the script.  We intentionally avoid calling
+                # st.experimental_rerun() here because that API may not be
+                # available in all Streamlit versions.  Instead, we rely on
+                # Streamlit automatically rerunning the script after widget
+                # interactions.  By not stopping execution below when the
+                # flag flips, the rest of the app will load in the same run.
                 st.session_state['logged_in'] = True
-                st.experimental_rerun()
             else:
                 st.error("Invalid username or password.")
-        # Stop further execution until authenticated
-        return
+        # If the user isn't logged in yet, halt the remainder of the app so
+        # that only the login form shows.  Once the credentials have been
+        # validated and `logged_in` is True, execution will continue past this
+        # point on the next script run.
+        if not st.session_state['logged_in']:
+            st.stop()
 
     # -------------------------------------------------------------------------
     # Load workbook from the preloaded file or from session state
